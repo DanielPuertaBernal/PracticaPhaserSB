@@ -1,7 +1,7 @@
-package com.practicaPhaser.dragdrop.services;
+package com.practicaPhaser.JuegoRamona.services;
 
-import com.practicaPhaser.dragdrop.domain.DragDropText;
-import com.practicaPhaser.dragdrop.repositories.DragDropTextRepository;
+import com.practicaPhaser.JuegoRamona.domain.DragDropText;
+import com.practicaPhaser.JuegoRamona.repositories.DragDropTextRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

@@ -1,4 +1,4 @@
-package com.practicaPhaser.dragdrop.domain;
+package com.practicaPhaser.JuegoRamona.domain;
 
 import jakarta.persistence.*;
 

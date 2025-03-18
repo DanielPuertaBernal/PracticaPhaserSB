@@ -1,6 +1,6 @@
-package com.practicaPhaser.dragdrop.repositories;
+package com.practicaPhaser.JuegoRamona.repositories;
 
-import com.practicaPhaser.dragdrop.domain.DragDropText;
+import com.practicaPhaser.JuegoRamona.domain.DragDropText;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

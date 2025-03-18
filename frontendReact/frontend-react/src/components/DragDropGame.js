@@ -1,14 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import Swal from 'sweetalert2';
+import successSound from "../assets/success.mp3";
+import errorSound from "../assets/error.mp3";
 
 function DragDropGame() {
     const [data, setData] = useState(null);
-
-    // 'answers' guardará la palabra que se soltó en cada hueco
-    // Ej: si hay 2 huecos, answers = ["mundo", "dragdrop"]
     const [answers, setAnswers] = useState([]);
-
-    // Palabras que el usuario aún no ha colocado (banco de fichas)
     const [availableWords, setAvailableWords] = useState([]);
 
     useEffect(() => {
@@ -21,9 +18,7 @@ function DragDropGame() {
                 setData(d);
                 if (d && d.palabrasFaltantes) {
                     const correctWords = d.palabrasFaltantes.split(',');
-                    // answers con el mismo número de huecos, inicialmente vacíos
                     setAnswers(Array(correctWords.length).fill(''));
-                    // El “banco” tendrá todas las palabras disponibles
                     setAvailableWords(correctWords);
                 }
             })
@@ -33,47 +28,48 @@ function DragDropGame() {
             });
     }, []);
 
-    // Manejadores de Drag & Drop para las “fichas”
+    // Al arrastrar una palabra desde el banco
     const handleDragStart = (e, word) => {
-        // guardamos la palabra que estamos arrastrando
         e.dataTransfer.setData('text/plain', word);
     };
 
-    // Permite soltar en el hueco
+    // Permitir soltar
     const handleDragOver = (e) => {
         e.preventDefault();
     };
 
-    // Cuando sueltas la palabra en un hueco
+    // Funciones para reproducir audio
+    const playSuccessSound = () => {
+        const audio = new Audio(successSound);
+        audio.play();
+    };
+
+    const playErrorSound = () => {
+        const audio = new Audio(errorSound);
+        audio.play();
+    };
+    // Al soltar la palabra en el hueco
     const handleDrop = (e, idx) => {
         e.preventDefault();
         const droppedWord = e.dataTransfer.getData('text/plain');
-
-        // Actualizamos answers: la palabra suelta va al hueco idx
         const newAnswers = [...answers];
         newAnswers[idx] = droppedWord;
         setAnswers(newAnswers);
-
-        // Removemos la palabra del “banco” de disponibles
+        // Remover la palabra del banco
         setAvailableWords((prev) => prev.filter((w) => w !== droppedWord));
     };
 
-    // Permite hacer clic en una palabra que ya está en el hueco
-    // para devolverla al banco
+    // Al hacer clic en la palabra en el hueco, la regresamos al banco
     const handleReturnToBank = (holeIndex) => {
         const word = answers[holeIndex];
-        if (!word) return; // si no hay palabra, no hace nada
-
-        // Quitamos la palabra del hueco
+        if (!word) return;
         const newAnswers = [...answers];
         newAnswers[holeIndex] = '';
         setAnswers(newAnswers);
-
-        // Devolvemos la palabra al banco
         setAvailableWords((prev) => [...prev, word]);
     };
 
-    // Validar las respuestas contra el backend
+    // Validar en el backend
     const handleValidate = () => {
         if (!data || !data.id) {
             Swal.fire('Error', 'No hay un texto cargado', 'error');
@@ -88,8 +84,11 @@ function DragDropGame() {
             .then((isCorrect) => {
                 if (isCorrect) {
                     Swal.fire('¡Correcto!', 'Has completado el texto exitosamente.', 'success');
+                    playSuccessSound();
+
                 } else {
                     Swal.fire('Incorrecto', 'Algunas palabras no coinciden.', 'error');
+                    playErrorSound();
                 }
             })
             .catch((err) => {
@@ -106,15 +105,15 @@ function DragDropGame() {
         );
     }
 
-    // Partimos el texto en segmentos para renderizar huecos
-    const segments = data.textoBase.split('__'); // Ej: ["Hola ", ", este es un ejemplo de ", "."]
-    const holesCount = answers.length; // número de huecos
+    // Dividir el texto en segmentos por cada "__"
+    // Asegúrate de que en la BD sea algo como: "María __, a todos en el __ de clase."
+    const segments = data.textoBase.split('__');
+    const holesCount = answers.length;
 
     return (
         <div style={{ textAlign: 'center', marginTop: '30px' }}>
             <h2>Juego: Drag &amp; Drop (Completar Texto)</h2>
 
-            {/* Banco de fichas (palabras disponibles) */}
             <div style={{ marginBottom: '20px' }}>
                 <h3>Banco de Palabras</h3>
                 <div style={{ display: 'flex', justifyContent: 'center', gap: '10px', flexWrap: 'wrap' }}>
@@ -137,7 +136,6 @@ function DragDropGame() {
                 </div>
             </div>
 
-            {/* Texto con huecos droppables */}
             <div
                 style={{
                     border: '1px solid #ccc',
@@ -149,29 +147,29 @@ function DragDropGame() {
                 }}
             >
                 {segments.map((seg, i) => {
-                    // Renderizamos el segmento de texto
+                    // Mostrar el segmento normal
                     const segmentEl = <span key={`seg-${i}`}>{seg}</span>;
 
-                    // Si NO es el último segmento, después va un hueco droppable
+                    // Si NO es el último segmento, va un hueco después
                     if (i < holesCount) {
-                        const holeIndex = i; // para la respuesta
+                        const holeIndex = i;
                         return (
                             <React.Fragment key={`frag-${i}`}>
                                 {segmentEl}
-                                {/* HUECO */}
+                                {/* HUECO donde soltar */}
                                 <span
                                     onDragOver={handleDragOver}
                                     onDrop={(e) => handleDrop(e, holeIndex)}
                                     style={{
                                         display: 'inline-block',
-                                        minWidth: '50px',
-                                        minHeight: '25px',
-                                        borderBottom: '2px dashed #666',
                                         margin: '0 4px',
                                         cursor: 'default',
                                     }}
                                 >
-                  {/* Si ya hay una palabra en este hueco, la mostramos */}
+                  {/* Si no hay palabra, mostramos "__" */}
+                                    {!answers[holeIndex] && <span style={{ color: '#888' }}>__</span>}
+
+                                    {/* Si ya hay una palabra, la pintamos */}
                                     {answers[holeIndex] && (
                                         <span
                                             onClick={() => handleReturnToBank(holeIndex)}
@@ -191,7 +189,6 @@ function DragDropGame() {
                             </React.Fragment>
                         );
                     } else {
-                        // Último segmento, no lleva hueco
                         return segmentEl;
                     }
                 })}
