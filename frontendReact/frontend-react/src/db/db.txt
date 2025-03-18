@@ -1,0 +1,16 @@
+-- Table: public.dragdrop
+
+-- DROP TABLE IF EXISTS public.dragdrop;
+
+CREATE TABLE IF NOT EXISTS public.dragdrop
+(
+    id bigint NOT NULL DEFAULT nextval('drag_drop_texts_id_seq'::regclass),
+    texto_base character varying(255) COLLATE pg_catalog."default" NOT NULL,
+    palabras_faltantes character varying(255) COLLATE pg_catalog."default" NOT NULL,
+    CONSTRAINT drag_drop_texts_pkey PRIMARY KEY (id)
+)
+
+TABLESPACE pg_default;
+
+ALTER TABLE IF EXISTS public.dragdrop
+    OWNER to postgres;
