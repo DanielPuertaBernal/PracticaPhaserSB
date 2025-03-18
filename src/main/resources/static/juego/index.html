@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <title>Juego Ramona</title>
+    <script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.min.js"></script>
+    <script src="main.js"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: #333;
+            color: #fff;
+            font-family: sans-serif;
+            text-align: center;
+        }
+        #game-container {
+            margin: 0 auto;
+            width: 800px;
+            height: 600px;
+            position: relative;
+        }
+        /* Botones */
+        #pause-btn,
+        #finalizar-btn {
+            position: absolute;
+            bottom: 10px;
+            padding: 8px 12px;
+            font-size: 14px;
+            cursor: pointer;
+            z-index: 999;
+        }
+        #pause-btn {
+            left: 10px;
+        }
+        #finalizar-btn {
+            right: 10px;
+        }
+        /* Overlay de resultados */
+        #resultados {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 800px;
+            height: 600px;
+            background-color: rgba(0,0,0,0.8);
+            display: none; /* Se muestra al finalizar */
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            z-index: 1000;
+        }
+        #resultados h2 {
+            margin-bottom: 20px;
+        }
+        #repetir-btn {
+            margin-top: 20px;
+            padding: 8px 12px;
+            font-size: 14px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+<h1>Juego Ramona</h1>
+<div id="game-container">
+    <!-- Botones de control -->
+    <button id="pause-btn">Pausar</button>
+    <button id="finalizar-btn">Finalizar</button>
+    <!-- Pantalla de resultados -->
+    <div id="resultados">
+        <h2>Resultados</h2>
+        <p id="detalle-resultado"></p>
+        <button id="repetir-btn">Repetir</button>
+    </div>
+</div>
+</body>
+</html>
