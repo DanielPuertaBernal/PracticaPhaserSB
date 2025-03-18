@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import Swal from 'sweetalert2';
+import successSound from "../assets/success.mp3";
+import errorSound from "../assets/error.mp3";
 
 function DragDropGame() {
     const [data, setData] = useState(null);
@@ -36,6 +38,16 @@ function DragDropGame() {
         e.preventDefault();
     };
 
+    // Funciones para reproducir audio
+    const playSuccessSound = () => {
+        const audio = new Audio(successSound);
+        audio.play();
+    };
+
+    const playErrorSound = () => {
+        const audio = new Audio(errorSound);
+        audio.play();
+    };
     // Al soltar la palabra en el hueco
     const handleDrop = (e, idx) => {
         e.preventDefault();
@@ -72,8 +84,11 @@ function DragDropGame() {
             .then((isCorrect) => {
                 if (isCorrect) {
                     Swal.fire('¡Correcto!', 'Has completado el texto exitosamente.', 'success');
+                    playSuccessSound();
+
                 } else {
                     Swal.fire('Incorrecto', 'Algunas palabras no coinciden.', 'error');
+                    playErrorSound();
                 }
             })
             .catch((err) => {
@@ -174,7 +189,6 @@ function DragDropGame() {
                             </React.Fragment>
                         );
                     } else {
-                        // Último segmento (sin hueco)
                         return segmentEl;
                     }
                 })}

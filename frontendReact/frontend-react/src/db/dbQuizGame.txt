@@ -1,0 +1,53 @@
+-- Table: public.quiz_question
+
+-- DROP TABLE IF EXISTS public.quiz_question;
+
+CREATE TABLE IF NOT EXISTS public.quiz_question
+(
+    id bigint NOT NULL DEFAULT nextval('quiz_question_id_seq'::regclass),
+    question_text character varying(255) COLLATE pg_catalog."default" NOT NULL,
+    option_a character varying(255) COLLATE pg_catalog."default" NOT NULL,
+    option_b character varying(255) COLLATE pg_catalog."default" NOT NULL,
+    option_c character varying(255) COLLATE pg_catalog."default",
+    option_d character varying(255) COLLATE pg_catalog."default",
+    correct_option character varying(255) COLLATE pg_catalog."default" NOT NULL,
+    CONSTRAINT quiz_question_pkey PRIMARY KEY (id)
+)
+
+TABLESPACE pg_default;
+
+ALTER TABLE IF EXISTS public.quiz_question
+    OWNER to postgres;
+
+-- Table: public.quiz_user_response
+
+-- DROP TABLE IF EXISTS public.quiz_user_response;
+
+CREATE TABLE IF NOT EXISTS public.quiz_user_response
+(
+    id bigint NOT NULL DEFAULT nextval('quiz_user_response_id_seq'::regclass),
+    user_name character varying(255) COLLATE pg_catalog."default" NOT NULL,
+    user_email character varying(255) COLLATE pg_catalog."default" NOT NULL,
+    user_document character varying(255) COLLATE pg_catalog."default" NOT NULL,
+    chosen_option character varying(255) COLLATE pg_catalog."default" NOT NULL,
+    is_correct boolean,
+    question_id bigint NOT NULL,
+    CONSTRAINT quiz_user_response_pkey PRIMARY KEY (id)
+)
+
+TABLESPACE pg_default;
+
+ALTER TABLE IF EXISTS public.quiz_user_response
+    OWNER to postgres;
+
+
+
+-- INSERTs para la tabla quiz_question
+
+    INSERT INTO quiz_question (question_text, option_a, option_b, option_c, option_d, correct_option)
+    VALUES
+    ('¿Cuál es la capital de Francia?', 'Berlín', 'París', 'Roma', 'Madrid', 'B'),
+    ('¿Cuánto es 2+2?', '3', '4', '5', '6', 'B'),
+    ('¿Cuál es el color del cielo en un día despejado?', 'Verde', 'Azul', 'Rojo', 'Blanco', 'B'),
+    ('¿Cuál es el planeta más cercano al Sol?', 'Mercurio', 'Venus', 'Tierra', 'Marte', 'A'),
+    ('¿En qué continente se encuentra Egipto?', 'Europa', 'África', 'Asia', 'América', 'B');

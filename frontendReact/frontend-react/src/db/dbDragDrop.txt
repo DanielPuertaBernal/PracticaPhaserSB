@@ -14,3 +14,13 @@ TABLESPACE pg_default;
 
 ALTER TABLE IF EXISTS public.dragdrop
     OWNER to postgres;
+
+    -- INSERTs para la tabla dragdrop
+
+    INSERT INTO dragdrop (texto_base, palabras_faltantes)
+    VALUES
+    ('Hola ____, este es un ejemplo de ____.', 'mundo,dragdrop'),
+    ('María ____, a todos en el ____ de clase.', 'saluda,salón'),
+    ('El perro ____ en el ____.', 'ladra,patio'),
+    ('La profesora ____ la ____ a tiempo.', 'inicia,clase'),
+    ('Nosotros ____ a la ____ de la mañana.', 'vamos,escuela');
