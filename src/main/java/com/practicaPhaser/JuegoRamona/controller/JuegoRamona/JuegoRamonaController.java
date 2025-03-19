@@ -1,7 +1,7 @@
-package com.practicaPhaser.JuegoRamona.controller;
+package com.practicaPhaser.JuegoRamona.controller.JuegoRamona;
 
-import com.practicaPhaser.JuegoRamona.domain.JuegoRamona;
-import com.practicaPhaser.JuegoRamona.services.JuegoRamonaService;
+import com.practicaPhaser.JuegoRamona.domain.JuegoRamona.JuegoRamona;
+import com.practicaPhaser.JuegoRamona.services.JuegoRamona.JuegoRamonaService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
