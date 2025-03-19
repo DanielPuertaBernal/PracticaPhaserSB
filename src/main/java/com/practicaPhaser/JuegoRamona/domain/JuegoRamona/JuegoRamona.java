@@ -1,4 +1,4 @@
-package com.practicaPhaser.JuegoRamona.domain;
+package com.practicaPhaser.JuegoRamona.domain.JuegoRamona;
 import jakarta.persistence.*;
 
 @Entity
@@ -14,6 +14,7 @@ public class JuegoRamona {
 
     @Column(name = "tiempo", nullable = false)
     private Integer tiempo;
+
 
     @Column(name = "monedas_obtenidas", nullable = false)
     private Integer monedasObtenidas;

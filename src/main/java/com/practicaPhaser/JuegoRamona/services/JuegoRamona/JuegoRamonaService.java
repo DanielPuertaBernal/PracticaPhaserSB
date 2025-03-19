@@ -1,7 +1,7 @@
-package com.practicaPhaser.JuegoRamona.services;
+package com.practicaPhaser.JuegoRamona.services.JuegoRamona;
 
-import com.practicaPhaser.JuegoRamona.domain.JuegoRamona;
-import com.practicaPhaser.JuegoRamona.repositories.JuegoRamonaRepository;
+import com.practicaPhaser.JuegoRamona.domain.JuegoRamona.JuegoRamona;
+import com.practicaPhaser.JuegoRamona.repositories.JuegoRamona.JuegoRamonaRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

@@ -1,4 +1,8 @@
 package com.practicaPhaser.JuegoRamona.repositories.quizgame;
 
-public interface QuizQuestionRepository {
+
+import com.practicaPhaser.JuegoRamona.domain.quizgame.QuizQuestion;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+public interface QuizQuestionRepository extends JpaRepository<QuizQuestion, Long> {
 }
