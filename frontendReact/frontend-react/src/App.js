@@ -1,7 +1,8 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
 import DragDropGame from './components/DragDropGame';
-import QuizGame from './components/QuizGame'; // Ejemplo de segundo juego
+import QuizGame from './components/QuizGame';
+import Login from './components/Login'; // <-- Importa el componente
 
 function App() {
     return (
@@ -11,11 +12,13 @@ function App() {
 
                 {/* Menú principal */}
                 <nav style={{ marginBottom: '20px' }}>
+                    <Link to="/login" style={{ marginRight: '10px' }}>Login</Link>
                     <Link to="/dragdrop" style={{ marginRight: '10px' }}>Juego Drag & Drop</Link>
                     <Link to="/quizgame">Juego de Preguntas</Link>
                 </nav>
 
                 <Routes>
+                    <Route path="/login" element={<Login />} />
                     <Route path="/dragdrop" element={<DragDropGame />} />
                     <Route path="/quizgame" element={<QuizGame />} />
                     {/* Ruta por defecto (opcional) */}
