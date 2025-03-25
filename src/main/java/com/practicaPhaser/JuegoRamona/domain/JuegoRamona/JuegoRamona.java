@@ -9,7 +9,7 @@ public class JuegoRamona {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "nombre_jugador", nullable = false)
+    @Column(name = "nombre_jugador")
     private String nombreJugador;
 
     @Column(name = "tiempo", nullable = false)

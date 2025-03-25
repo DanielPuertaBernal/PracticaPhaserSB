@@ -4,69 +4,70 @@
     <meta charset="UTF-8" />
     <title>Juego Ramona</title>
     <script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.min.js"></script>
-    <script src="main.js"></script>
     <style>
         body {
-            margin: 0;
-            padding: 0;
-            background: #333;
-            color: #fff;
-            font-family: sans-serif;
-            text-align: center;
+            margin: 0; padding: 0;
+            background: #333; color: #fff;
+            font-family: sans-serif; text-align: center;
         }
+        #menu { margin-top: 50px; }
         #game-container {
-            margin: 0 auto;
-            width: 800px;
-            height: 600px;
-            position: relative;
+            margin: 0 auto; width: 800px; height: 600px; position: relative;
+            display: none; /* Se mostrará tras elegir rol */
         }
         /* Botones */
-        #pause-btn,
-        #finalizar-btn {
-            position: absolute;
-            bottom: 10px;
-            padding: 8px 12px;
-            font-size: 14px;
-            cursor: pointer;
-            z-index: 999;
+        #pause-btn, #finalizar-btn {
+            position: absolute; bottom: 10px; padding: 8px 12px;
+            font-size: 14px; cursor: pointer; z-index: 999;
         }
-        #pause-btn {
-            left: 10px;
-        }
-        #finalizar-btn {
-            right: 10px;
-        }
+        #pause-btn { left: 10px; }
+        #finalizar-btn { right: 10px; }
+
         /* Overlay de resultados */
         #resultados {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 800px;
-            height: 600px;
+            position: absolute; top: 0; left: 0; width: 800px; height: 600px;
             background-color: rgba(0,0,0,0.8);
             display: none; /* Se muestra al finalizar */
-            justify-content: center;
-            align-items: center;
-            flex-direction: column;
+            justify-content: center; align-items: center; flex-direction: column;
             z-index: 1000;
         }
-        #resultados h2 {
-            margin-bottom: 20px;
-        }
+        #resultados h2 { margin-bottom: 20px; }
         #repetir-btn {
-            margin-top: 20px;
-            padding: 8px 12px;
-            font-size: 14px;
-            cursor: pointer;
+            margin-top: 20px; padding: 8px 12px; font-size: 14px; cursor: pointer;
+        }
+
+        /* Overlay de PAUSA (solo para jugador) */
+        #pause-overlay {
+            position: absolute; top: 0; left: 0; width: 800px; height: 600px;
+            background-color: rgba(0,0,0,0.5);
+            display: none; /* Se muestra cuando el jugador está en pausa */
+            justify-content: center; align-items: center; flex-direction: column;
+            z-index: 9999;
+            color: #fff; font-size: 30px;
         }
     </style>
 </head>
 <body>
 <h1>Juego Ramona</h1>
+
+<!-- Menú inicial -->
+<div id="menu">
+    <button id="admin-option">Administrador</button>
+    <button id="player-option">Jugador</button>
+</div>
+
+<!-- Contenedor del juego (inicialmente oculto) -->
 <div id="game-container">
-    <!-- Botones de control -->
+    <!-- Botones de control (para administrador) -->
     <button id="pause-btn">Pausar</button>
     <button id="finalizar-btn">Finalizar</button>
+    <button id="resume-btn">Reanudar</button>
+
+    <!-- Overlay de pausa para el jugador -->
+    <div id="pause-overlay">
+        <p>¡El juego está en pausa!</p>
+    </div>
+
     <!-- Pantalla de resultados -->
     <div id="resultados">
         <h2>Resultados</h2>
@@ -74,5 +75,8 @@
         <button id="repetir-btn">Repetir</button>
     </div>
 </div>
+
+<!-- Tu script principal -->
+<script src="main.js"></script>
 </body>
 </html>
