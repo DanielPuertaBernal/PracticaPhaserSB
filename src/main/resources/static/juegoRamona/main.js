@@ -2,13 +2,12 @@ const config = {
     type: Phaser.AUTO,
     width: 800,
     height: 600,
-    backgroundColor: "#2d2d2d",
     parent: "game-container",
     physics: {
         default: "arcade",
         arcade: {
             gravity: { y: 300 },
-            debug: false,
+            debug: true, // Activa el debug para ver colisiones
         },
     },
     scene: {
@@ -18,182 +17,103 @@ const config = {
     },
 };
 
-// Variable global de Phaser
 let game = new Phaser.Game(config);
+let player, platforms, cursors;
+let isObserver = false;
+let socket;
 
-// Variables de juego
-let player, platforms;
-let isPaused = false; // Para saber si el juego está en pausa
-let playerName = "";
-let tiempo = 0;
-let monedasObtenidas = 0;
-let timeText, scoreText;
-
-// Botones (referencias del DOM)
-let pauseBtn, finalizarBtn, repetirBtn;
-
-// Escena: Preload
 function preload() {
-    // No se cargan assets, usaremos figuras
+    this.load.image("background", "https://i.imgur.com/HRhd2RH.png");
 }
 
-// Escena: Create
 function create() {
-    // Solicitar nombre
-    playerName = prompt("Ingresa tu nombre de jugador:") || "Jugador";
+    console.log("Iniciando WebSocket...");
+    socket = new WebSocket("ws://localhost:8080/game");
 
-    // Crear plataformas (rectángulos azules)
-    platforms = this.physics.add.staticGroup();
-    const ground = this.add.rectangle(400, 590, 800, 20, 0x0000ff);
-    this.physics.add.existing(ground, true);
+    socket.onopen = () => {
+        console.log("WebSocket conectado");
+        socket.send(JSON.stringify({ type: "JOIN" }));
+    };
+
+    socket.onmessage = (event) => {
+        const data = JSON.parse(event.data);
+        console.log("Mensaje WebSocket recibido:", data);
+
+        if (data.type === "ASSIGN_ROLE") {
+            isObserver = data.isObserver;
+            console.log(isObserver ? "Modo observador" : "Modo jugador");
+            initializeGame(this);
+        } else if (data.type === "MOVE" && isObserver) {
+            updateObserverView(data);
+        }
+    };
+
+    socket.onerror = (error) => console.error("WebSocket Error:", error);
+    socket.onclose = () => console.warn("WebSocket cerrado");
+}
+
+function initializeGame(scene) {
+    console.log("Inicializando juego...");
+
+    scene.add.image(400, 300, "background");
+
+    platforms = scene.physics.add.staticGroup();
+    const ground = scene.add.rectangle(400, 590, 800, 20, 0x0000ff);
+    scene.physics.add.existing(ground, true);
     platforms.add(ground);
 
-    const platform1 = this.add.rectangle(300, 400, 200, 20, 0x0000ff);
-    this.physics.add.existing(platform1, true);
-    platforms.add(platform1);
+    player = scene.add.rectangle(100, 550, 40, 40, 0x00ff00);
+    scene.physics.add.existing(player);
 
-    const platform2 = this.add.rectangle(600, 300, 200, 20, 0x0000ff);
-    this.physics.add.existing(platform2, true);
-    platforms.add(platform2);
-
-    const platform3 = this.add.rectangle(150, 200, 200, 20, 0x0000ff);
-    this.physics.add.existing(platform3, true);
-    platforms.add(platform3);
-
-    // Jugador (cubo verde)
-    player = this.add.rectangle(100, 550, 40, 40, 0x00ff00);
-    this.physics.add.existing(player);
-    player.body.setCollideWorldBounds(true);
-    this.physics.add.collider(player, platforms);
-
-    // Crear la primera moneda
-    createCoin(this);
-
-    // Texto de tiempo y monedas
-    timeText = this.add.text(20, 20, "Tiempo: 0", { fontSize: "20px", fill: "#fff" });
-    scoreText = this.add.text(20, 50, "Monedas: 0", { fontSize: "20px", fill: "#fff" });
-
-    // Referencias a los botones del DOM
-    pauseBtn = document.getElementById("pause-btn");
-    finalizarBtn = document.getElementById("finalizar-btn");
-    repetirBtn = document.getElementById("repetir-btn");
-
-    // Listeners
-    pauseBtn.addEventListener("click", () => togglePause());
-    finalizarBtn.addEventListener("click", () => finalizarPartida());
-    repetirBtn.addEventListener("click", () => repetirPartida());
-
-    // Controles de teclado (flechas)
-    this.input.keyboard.createCursorKeys();
-}
-
-// Escena: Update
-function update(_, delta) {
-    // Si el juego NO está en pausa, incrementamos el tiempo y permitimos movimiento
-    if (!isPaused) {
-        tiempo += delta / 1000;
-        timeText.setText("Tiempo: " + Math.floor(tiempo));
-
-        // Movimiento del jugador
-        const cursors = this.input.keyboard.createCursorKeys();
-        if (cursors.left.isDown) {
-            player.body.setVelocityX(-160);
-        } else if (cursors.right.isDown) {
-            player.body.setVelocityX(160);
-        } else {
-            player.body.setVelocityX(0);
-        }
-
-        // Salto
-        if (cursors.up.isDown && player.body.touching.down) {
-            player.body.setVelocityY(-360);
-        }
+    if (!isObserver) {
+        console.log("Modo jugador activado.");
+        player.body.setCollideWorldBounds(true);
+        scene.physics.add.collider(player, platforms);
+        cursors = scene.input.keyboard.createCursorKeys();
     } else {
-        // Si está en pausa, no movemos al jugador
-        player.body.setVelocityX(0);
+        console.log("Modo observador activado.");
+        scene.cameras.main.setBackgroundColor("#444");
+        scene.cameras.main.startFollow(player, true, 0.1, 0.1);
+        scene.physics.add.collider(player, platforms); // ⚠️ Se agrega colisión en el observador
     }
 }
 
-// Crea una moneda en una posición aleatoria
-function createCoin(scene) {
-    const x = Phaser.Math.Between(50, 750);
-    const y = Phaser.Math.Between(50, 550);
-    const coinRect = scene.add.rectangle(x, y, 20, 20, 0xffff00);
-    scene.physics.add.existing(coinRect);
-    coinRect.body.setAllowGravity(false);
+function update() {
+    if (!player || isObserver) return;
 
-    // Detectar cuando el jugador solape la moneda
-    scene.physics.add.overlap(player, coinRect, () => collectCoin(scene, coinRect));
+    let velocityX = 0;
+
+    if (cursors.left.isDown) velocityX = -160;
+    else if (cursors.right.isDown) velocityX = 160;
+
+    player.body.setVelocityX(velocityX);
+
+    if (cursors.up.isDown && player.body.touching.down) {
+        player.body.setVelocityY(-360);
+    }
+
+    sendPlayerState();
 }
 
-// Al recoger la moneda
-function collectCoin(scene, coinRect) {
-    coinRect.destroy();
-    monedasObtenidas++;
-    scoreText.setText("Monedas: " + monedasObtenidas);
-
-    // Crear otra moneda en posición aleatoria
-    createCoin(scene);
-}
-
-
-// Pausar / Reanudar el juego
-function togglePause() {
-    if (!isPaused) {
-        // Pausar
-        isPaused = true;
-        game.scene.pause();
-        pauseBtn.textContent = "Reanudar";
-    } else {
-        // Reanudar
-        isPaused = false;
-        game.scene.resume();
-        pauseBtn.textContent = "Pausar";
+function sendPlayerState() {
+    if (socket.readyState === WebSocket.OPEN) {
+        socket.send(JSON.stringify({
+            type: "MOVE",
+            x: player.x,
+            y: player.y,
+            velocityX: player.body.velocity.x,
+            velocityY: player.body.velocity.y
+        }));
     }
 }
 
-// Finalizar partida
-function finalizarPartida() {
-    // Pausar el juego
-    isPaused = true;
-    game.scene.pause();
+function updateObserverView(data) {
+    console.log("🔄 Actualizando vista del observador:", data);
 
-    // Enviar datos al backend
-    fetch("/api/juego", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-            nombreJugador: playerName,
-            tiempo: Math.floor(tiempo),
-            monedasObtenidas: monedasObtenidas,
-        }),
-    })
-        .then((res) => res.json())
-        .then((data) => {
-            console.log("Partida guardada:", data);
-            // Mostrar pantalla de resultados
-            mostrarResultados();
-        })
-        .catch((err) => console.error("Error:", err));
-}
+    // Suavizar la transición del personaje sin romper colisiones
+    player.x = Phaser.Math.Linear(player.x, data.x, 0.2);
+    player.y = Phaser.Math.Linear(player.y, data.y, 0.2);
 
-// Muestra la capa de resultados y detalla el tiempo y monedas
-function mostrarResultados() {
-    const resultadosDiv = document.getElementById("resultados");
-    const detalleResultado = document.getElementById("detalle-resultado");
-    resultadosDiv.style.display = "flex";
-
-    detalleResultado.innerText = `
-    Jugador: ${playerName}
-    \nTiempo: ${Math.floor(tiempo)} segundos
-    \nMonedas: ${monedasObtenidas}
-  `;
-}
-
-// Repetir la partida (reiniciar)
-function repetirPartida() {
-    // Opción 1: recargar la página
-    window.location.reload();
-    // Restauramos texto de botón de pausa
-    pauseBtn.textContent = "Pausar";
+    // Aplicamos velocidad para simular mejor el movimiento
+    player.body.setVelocity(data.velocityX, data.velocityY);
 }
