@@ -1,4 +1,4 @@
-package com.practicaPhaser.JuegoRamona;
+package com.practicaPhaser;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
