@@ -14,6 +14,15 @@ let timeText, scoreText;
 let coinIdCounter = 0; // ID incremental para cada moneda
 const coins = {};      // Almacena las monedas: { [coinId]: <PhaserGameObject> }
 
+// Posiciones fijas de las monedas
+const fixedCoinPositions = [
+    { x: 100, y: 100 },
+    { x: 700, y: 100 },
+    { x: 100, y: 500 },
+    { x: 700, y: 500 },
+    { x: 400, y: 300 }
+];
+
 // Referencias DOM
 const menuDiv= document.getElementById("menu");
 const gameContainer= document.getElementById("game-container");
@@ -56,7 +65,6 @@ function startGame(selectedRole) {
         resumeBtn.style.display = "none";
         isObserver = false;
     }
-
 
     // Configuración de Phaser
     const config = {
@@ -101,15 +109,28 @@ function create() {
     scoreText = this.add.text(20, 50, "Monedas: 0", { fontSize: "20px", fill: "#fff" });
 
     if (!isObserver) {
+        // Jugador: genera monedas y envía mensajes WS para sincronizar
         player.body.setCollideWorldBounds(true);
         this.physics.add.collider(player, platforms);
         cursors = this.input.keyboard.createCursorKeys();
 
-        // Generar primera moneda
-        spawnCoin();
+        fixedCoinPositions.forEach((pos) => {
+            const coinId = coinIdCounter++;
+            sendWSMessage("SPAWN_COIN", { coinId, x: pos.x, y: pos.y });
+            createCoinLocal(coinId, pos.x, pos.y);
+        });
     } else {
-        // Observador: cámara estática
+        // Observador: solo configura física
         this.physics.add.collider(player, platforms);
+        // Si en 1 segundo no se han recibido monedas vía WS, se crean localmente
+        setTimeout(() => {
+            if (Object.keys(coins).length === 0) {
+                fixedCoinPositions.forEach((pos) => {
+                    const coinId = coinIdCounter++;
+                    createCoinLocal(coinId, pos.x, pos.y);
+                });
+            }
+        }, 1000);
     }
 }
 
@@ -146,17 +167,10 @@ function addStaticPlatform(scene, x, y, width, height) {
 /* --------------------------------------------------------------------------
    3) MONEDAS Y TIEMPO
    -------------------------------------------------------------------------- */
-function spawnCoin() {
-    const coinId = coinIdCounter++;
-    const x = Phaser.Math.Between(50, 750);
-    const y = Phaser.Math.Between(50, 550);
-
-    sendWSMessage("SPAWN_COIN", { coinId, x, y });
-    createCoinLocal(coinId, x, y);
-}
-
 function createCoinLocal(coinId, x, y) {
     const scene = game.scene.scenes[0];
+    // Evita crear duplicados si ya existe una moneda con ese ID
+    if (coins[coinId]) return;
     const coin  = scene.add.rectangle(x, y, 20, 20, 0xffff00);
     scene.physics.add.existing(coin);
     coin.body.setAllowGravity(false);
@@ -184,20 +198,14 @@ function collectCoin(coinId) {
     monedasObtenidas++;
     scoreText.setText(`Monedas: ${monedasObtenidas}`);
 
+    // Cuando se recolectan las 5 monedas, finaliza la partida
     if (monedasObtenidas >= 5) {
         finalizarPartidaAuto();
         return;
     }
 
     sendWSMessage("COIN_COLLECTED", { coinId });
-    spawnCoin();
-}
-
-function removeCoinLocal(coinId) {
-    const coin = coins[coinId];
-    if (!coin) return;
-    coin.destroy();
-    delete coins[coinId];
+    // No se genera una nueva moneda ya que las monedas son fijas
 }
 
 /* Envía tiempo y monedas al observador */
@@ -253,16 +261,13 @@ function initWebSocket() {
                 break;
             case "RESUME_GAME":
                 if (!isObserver) {
-                    // Jugador quita pausa
                     resumeLocal();
                 }
                 break;
             case "END_GAME":
                 if (isObserver) {
-                    // El jugador terminó la partida
                     alert("El estudiante terminó la actividad correctamente.");
                 } else {
-                    // Jugador finaliza localmente
                     finalizarPartida();
                 }
                 break;
@@ -326,7 +331,6 @@ function pauseLocal() {
     game.scene.pause();
     pauseOverlay.style.display = "flex";
 
-    // Solo si es admin alternamos la visibilidad de los botones
     if (role === "admin") {
         pauseBtn.style.display = "none";
         resumeBtn.style.display = "inline-block";
@@ -338,63 +342,50 @@ function resumeLocal() {
     game.scene.resume();
     pauseOverlay.style.display = "none";
 
-    // Solo si es admin alternamos la visibilidad de los botones
     if (role === "admin") {
         resumeBtn.style.display = "none";
         pauseBtn.style.display = "inline-block";
     }
 }
 
-/**
- * Finaliza la partida manualmente (ADMIN)
- */
 function finalizarPartida() {
-    // Si es admin, envía END_GAME para forzar al jugador
     if (role === "admin") {
         sendWSMessage("END_GAME");
     }
     isPaused = true;
     game.scene.pause();
     pauseOverlay.style.display = "none";
-
-    // Título normal: "Resultados"
     mostrarResultados("Resultados");
 }
 
-/**
- * Finaliza la partida automáticamente (JUGADOR)
- * - Por tiempo (60s) o por 5 monedas
- */
 function finalizarPartidaAuto() {
     isPaused = true;
     game.scene.pause();
     pauseOverlay.style.display = "none";
-
-    // Título especial: "El estudiante terminó la actividad correctamente"
     mostrarResultados("El estudiante terminó la actividad correctamente");
-
-    // Avisar al servidor que el jugador terminó
     sendWSMessage("END_GAME");
 }
 
-/**
- * Muestra la pantalla de resultados con un título personalizable
- */
 function mostrarResultados(titulo) {
     resultadosDiv.style.display = "flex";
-
-    // Cambiamos el texto del <h2>
     const tituloElem = resultadosDiv.querySelector("h2");
     tituloElem.textContent = titulo;
-
     detalleResultado.innerText = `
         Tiempo: ${Math.floor(tiempo)} segundos
         Monedas: ${monedasObtenidas}
     `;
 }
+
 function reanudarPartida() {
-    // Enviar mensaje al servidor para que el jugador reanude
     if (socket && socket.readyState === WebSocket.OPEN) {
         socket.send(JSON.stringify({ type: "RESUME_GAME" }));
     }
+}
+
+/* Función auxiliar para eliminar la moneda local tras recibir COIN_COLLECTED */
+function removeCoinLocal(coinId) {
+    const coin = coins[coinId];
+    if (!coin) return;
+    coin.destroy();
+    delete coins[coinId];
 }

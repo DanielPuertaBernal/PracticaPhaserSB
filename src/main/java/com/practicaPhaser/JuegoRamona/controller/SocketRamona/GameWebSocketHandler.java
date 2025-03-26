@@ -64,7 +64,7 @@ public class GameWebSocketHandler extends TextWebSocketHandler {
                 }
                 break;
 
-            // Se reenvían al jugador principal (admin -> jugador)
+            // Se raeenvían al jugador principal (admin -> jugador)
             case "PAUSE_GAME":
             case "RESUME_GAME":
                 if (mainPlayerSession != null && mainPlayerSession.isOpen()) {
